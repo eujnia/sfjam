@@ -3,14 +3,13 @@ using UnityEngine;
 public class MouseLook : MonoBehaviour
 {
     public float sensitivity = 200f;
-    public Transform playerBody; // referencia al objeto "Personaje"
 
     float xRotation = 0f;
+    float yRotation = 0f;
 
     void Start()
     {
-        // Oculta y bloquea el cursor en el centro de la pantalla
-        Cursor.lockState = CursorLockMode.Locked;
+        SetCursorLocked(true);
     }
 
     void Update()
@@ -18,13 +17,21 @@ public class MouseLook : MonoBehaviour
         float mouseX = Input.GetAxis("Mouse X") * sensitivity * Time.deltaTime;
         float mouseY = Input.GetAxis("Mouse Y") * sensitivity * Time.deltaTime;
 
-        // Rotar hacia arriba/abajo la cámara (eje X)
-        xRotation -= mouseY;
+        // Acumulamos rotación
+        xRotation -= mouseY; // arriba/abajo
+        yRotation += mouseX; // izquierda/derecha
+
+        // Clamp solo al eje X (vertical)
         xRotation = Mathf.Clamp(xRotation, -90f, 90f);
 
-        transform.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
-
-        // Rotar al jugador en eje Y (izquierda/derecha)
-        playerBody.Rotate(Vector3.up * mouseX);
+        // Aplicamos rotación completa
+        transform.localRotation = Quaternion.Euler(xRotation, yRotation, 0f);
     }
+
+    public void SetCursorLocked(bool locked)
+    {
+        Cursor.lockState = locked ? CursorLockMode.Locked : CursorLockMode.None;
+        Cursor.visible = !locked;
+    }
+
 }

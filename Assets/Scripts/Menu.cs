@@ -2,13 +2,14 @@ using UnityEngine;
 
 public class Menu : MonoBehaviour
 {
-    // Start is called before the first frame update
     void Start()
     {
-
+        transform.Find("StartButton").GetComponent<UnityEngine.UI.Button>().onClick.AddListener(StartGame);
     }
-    
-    public void StartGame() {
+
+    public void StartGame()
+    {
+        Music.Instance.PlaySong("karma");
         UnityEngine.SceneManagement.SceneManager.LoadScene("Game1");
     }
 

@@ -3,20 +3,24 @@ using System.Collections;
 
 public class Music : MonoBehaviour
 {
+    public static Music Instance { get; private set; }
     public AudioClip[] songs;   // lista de canciones desde el inspector
     private AudioSource audioSource;
 
-    [SerializeField] float maxVolume = 0.2f;
+    public float maxVolume = 0.2f;
     [SerializeField] float fadeDuration = 1f;
+    bool fading = false;
 
     void Start()
     {
-        GameObject existingMusic = GameObject.Find("Music");
-        if (existingMusic != null && existingMusic != gameObject)
+        // Singleton
+        if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
             return;
         }
+
+        Instance = this;
         DontDestroyOnLoad(gameObject);
 
         audioSource = GetComponent<AudioSource>();
@@ -26,23 +30,36 @@ public class Music : MonoBehaviour
         audioSource.loop = true; // default
         audioSource.volume = 0;
 
-        PlaySong("hike");
+        PlaySong("hike", false);
     }
 
-    public void PlaySong(string songName)
+    private void Update()
+    {
+        if (!fading) audioSource.volume = Mathf.Lerp(audioSource.volume, maxVolume * (Config.Instance.data.musicMuted ? 0f : 1f), Time.deltaTime * 5f);
+    }
+
+    public void PlaySong(string songName, bool fade = true)
     {
         AudioClip clip = System.Array.Find(songs, song => song.name == songName);
         if (clip == null) return;
 
         StopAllCoroutines();
-        StartCoroutine(FadeToSong(clip));
+        StartCoroutine(FadeToSong(clip, fade));
     }
 
-    private IEnumerator FadeToSong(AudioClip newClip)
+    private IEnumerator FadeToSong(AudioClip newClip, bool fade)
     {
-        // Fade out
+        if (!fade)
+        {
+            audioSource.clip = newClip;
+            audioSource.volume = maxVolume * (Config.Instance.data.musicMuted ? 0f : 1f);
+            audioSource.Play();
+            yield break;
+        }
+        
         float startVolume = audioSource.volume;
         float time = 0f;
+        fading = true;
 
         while (time < fadeDuration)
         {
@@ -60,11 +77,12 @@ public class Music : MonoBehaviour
         while (time < fadeDuration)
         {
             time += Time.deltaTime;
-            audioSource.volume = Mathf.Lerp(0f, maxVolume, time / fadeDuration);
+            audioSource.volume = Mathf.Lerp(0f, maxVolume * (Config.Instance.data.musicMuted ? 0f : 1f), time / fadeDuration);
             yield return null;
         }
 
-        audioSource.volume = maxVolume;
+        audioSource.volume = maxVolume * (Config.Instance.data.musicMuted ? 0f : 1f);
+        fading = false;
     }
 
     public void Stop()

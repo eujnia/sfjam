@@ -1,50 +1,60 @@
+using System;
 using UnityEngine;
+using UnityEngine.Splines;
 
-[RequireComponent(typeof(CharacterController))]
+
 public class PlayerMovement : MonoBehaviour
 {
-    public float speed = 5f;
-    public float gravity = -9.81f;
-    public float jumpHeight = 1.5f;
+    public float maxPlayerSpeed = 3f;
+    float speed = 0f;
 
-    CharacterController controller;
-    Vector3 velocity;
-    public bool isGrounded;
+    MoveAlongSpline moveAlongSpline;
 
-    public Transform groundCheck;
-    public float groundDistance = 0.4f;
-    public LayerMask groundMask;
+    float distanceTravelled = 0f;
 
     void Start()
     {
-        controller = GetComponent<CharacterController>();
+        moveAlongSpline = GetComponent<MoveAlongSpline>();
+        moveAlongSpline.spline = FindObjectOfType<SplineContainer>();
     }
 
     void Update()
     {
-        // Verificar si estamos tocando el suelo
-        isGrounded = Physics.CheckSphere(groundCheck.position, groundDistance, groundMask);
+        ManageSpeed();
+        ManageSpline();
+    }
 
-        if (isGrounded && velocity.y < 0)
+    private void ManageSpline()
+    {
+        moveAlongSpline.speed = speed;
+    }
+
+    void ManageSpeed()
+    {
+
+        if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.UpArrow))
         {
-            velocity.y = -2f; // mantener pegado al suelo
+            speed += 5f * Time.deltaTime;
+        }
+        else if (Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow))
+        {
+            speed -= 5f * Time.deltaTime;
+        }
+        else
+        {
+            // Gradually return to zero speed when no input is given
+            if (speed > 0)
+            {
+                speed -= 5f * Time.deltaTime;
+                if (speed < 0) speed = 0;
+            }
+            else if (speed < 0)
+            {
+                speed += 5f * Time.deltaTime;
+                if (speed > 0) speed = 0;
+            }
         }
 
-        // Movimiento en plano XZ
-        float x = Input.GetAxis("Horizontal");
-        float z = Input.GetAxis("Vertical");
-
-        Vector3 move = transform.right * x + transform.forward * z;
-        controller.Move(move * speed * Time.deltaTime);
-
-        // Salto
-        if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
-        {
-            velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
-        }
-
-        // Gravedad
-        velocity.y += gravity * Time.deltaTime;
-        controller.Move(velocity * Time.deltaTime);
+        speed = Mathf.Clamp(speed, -maxPlayerSpeed, maxPlayerSpeed);
     }
 }

@@ -15,7 +15,11 @@ public class PlayerColorSystem : MonoBehaviour
 
     void Update()
     {
-        if (Input.GetMouseButtonDown(0))
+
+        bool leftClick = Input.GetMouseButtonDown(0);
+        bool rightClick = Input.GetMouseButtonDown(1);
+
+        if (leftClick || rightClick)
         {
             Ray ray = new Ray(cam.transform.position, cam.transform.forward);
             RaycastHit hit;
@@ -26,7 +30,7 @@ public class PlayerColorSystem : MonoBehaviour
                 ColorExpansion ce = hit.collider.GetComponent<ColorExpansion>();
                 if (ce != null)
                 {
-                    ce.StartEffect(hit.point, palette.GetSelectedColor());
+                    ce.StartEffect(hit.point, leftClick ? palette.GetSelectedColor() : Color.white);
                 }
                 else
                 {
