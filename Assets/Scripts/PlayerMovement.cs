@@ -7,10 +7,7 @@ public class PlayerMovement : MonoBehaviour
 {
     public float maxPlayerSpeed = 3f;
     float speed = 0f;
-
     MoveAlongSpline moveAlongSpline;
-
-    float distanceTravelled = 0f;
 
     void Start()
     {

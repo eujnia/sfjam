@@ -5,9 +5,11 @@ using UnityEngine;
 
 public class Palette : MonoBehaviour
 {
+    public int colorIndex = 0;
     [Serializable]
     public enum Theme
     {
+        Level1,
         Earthy,
         Cake,
         Radiant,
@@ -19,19 +21,22 @@ public class Palette : MonoBehaviour
     private Theme currentTheme;
 
     Color[] colors;
+    PaletteColor[] palettesInstanced;
 
     // public int selectedColorIndex = 0;
 
     void Start()
     {
         InitializeColors();
-        foreach (Color color in colors)
+        palettesInstanced = new PaletteColor[colors.Length];
+        for (int i = 0; i < colors.Length; i++)
         {
             GameObject colorObj = Instantiate(Resources.Load<GameObject>("Prefabs/PaletteColor"), transform);
             PaletteColor paletteColor = colorObj.GetComponent<PaletteColor>();
+            palettesInstanced[i] = paletteColor;
             if (paletteColor != null)
             {
-                paletteColor.color = color;
+                paletteColor.SetColor(colors[i]);
             }
         }
     }
@@ -39,26 +44,66 @@ public class Palette : MonoBehaviour
     {
         switch (currentTheme)
         {
+            case Theme.Level1:
+                colors = new Color[]
+                {
+                    // Neutros
+                    new Color(0.9f, 0.9f, 0.9f),   // Blanco suave
+                    new Color(0.5f, 0.5f, 0.5f),   // Gris medio
+                    new Color(0.25f, 0.25f, 0.25f),// Gris oscuro
+                    new Color(0.1f, 0.1f, 0.1f),   // Negro suave
+
+                    // Rojos
+                    new Color(0.8f, 0.35f, 0.0f),  // Naranja oscuro
+                    new Color(0.6f, 0.0f, 0.0f),   // Rojo oscuro
+                    new Color(0.9f, 0.1f, 0.1f),   // Rojo intenso
+                    new Color(1.0f, 0.4f, 0.4f),   // Rojo pastel
+
+                    // Naranjas
+                    new Color(1.0f, 0.55f, 0.0f),  // Naranja brillante
+                    new Color(1.0f, 0.75f, 0.5f),  // Durazno claro
+
+                    // Amarillos
+                    new Color(1.0f, 1.0f, 0.6f),   // Amarillo pastel
+                    new Color(1.0f, 0.9f, 0.0f),   // Amarillo intenso
+                    new Color(0.85f, 0.75f, 0.0f), // Mostaza
+
+                    // Verdes
+                    new Color(0.1f, 0.7f, 0.1f),   // Verde césped
+                    new Color(0.0f, 0.4f, 0.0f),   // Verde bosque
+                    new Color(0.5f, 1.0f, 0.5f),   // Verde menta
+
+                    // Azules
+                    new Color(0.5f, 0.8f, 1.0f),   // Azul pastel
+                    new Color(0.0f, 0.5f, 1.0f),   // Azul cielo
+                    new Color(0.0f, 0.0f, 0.6f),   // Azul marino
+
+                    // Violetas
+                    new Color(0.6f, 0.2f, 0.8f),   // Violeta fuerte
+                    new Color(0.8f, 0.6f, 1.0f),   // Lavanda
+                    new Color(1.0f, 0.7f, 0.9f),   // Rosa chicle
+                };
+                break;
             case Theme.Earthy:
                 colors = new Color[]
                 {
-                // Deep, earthy reds and oranges
-                new Color(0.6f, 0.2f, 0.2f),   // Muted Brick Red
-                new Color(0.7f, 0.4f, 0.1f),   // Terracotta Orange
-                new Color(0.8f, 0.5f, 0.2f),   // Burnt Sienna
+                    // Deep, earthy reds and oranges
+                    new Color(0.6f, 0.2f, 0.2f),   // Muted Brick Red
+                    new Color(0.7f, 0.4f, 0.1f),   // Terracotta Orange
+                    new Color(0.8f, 0.5f, 0.2f),   // Burnt Sienna
 
-                // Warm, golden yellows
-                new Color(0.9f, 0.7f, 0.2f),   // Goldenrod
-                new Color(0.9f, 0.8f, 0.4f),   // Mustard Yellow
+                    // Warm, golden yellows
+                    new Color(0.9f, 0.7f, 0.2f),   // Goldenrod
+                    new Color(0.9f, 0.8f, 0.4f),   // Mustard Yellow
 
-                // Muted greens and blues for subtle contrast
-                new Color(0.5f, 0.6f, 0.4f),   // Sage Green
-                new Color(0.3f, 0.4f, 0.5f),   // Dusty Blue
+                    // Muted greens and blues for subtle contrast
+                    new Color(0.5f, 0.6f, 0.4f),   // Sage Green
+                    new Color(0.3f, 0.4f, 0.5f),   // Dusty Blue
 
-                // Neutrals for balance and light
-                new Color(0.9f, 0.8f, 0.7f),   // Off-white or Cream
-                new Color(0.3f, 0.3f, 0.3f),   // Charcoal Gray
-                new Color(0.6f, 0.5f, 0.4f)    // Warm Taupe
+                    // Neutrals for balance and light
+                    new Color(0.9f, 0.8f, 0.7f),   // Off-white or Cream
+                    new Color(0.3f, 0.3f, 0.3f),   // Charcoal Gray
+                    new Color(0.6f, 0.5f, 0.4f)    // Warm Taupe
                 };
                 break;
             case Theme.Cake:
@@ -136,49 +181,56 @@ public class Palette : MonoBehaviour
     void Update()
     {
         ManageColorIndex();
-        ManageColorsRotation();
+        ManageIndex();
+        ManageColorsPositions();
+    }
+
+    private void ManageColorsPositions()
+    {
+        
     }
 
     void ManageColorIndex()
     {
+        for (int i = 0; i < palettesInstanced.Length; i++)
+        {
+            PaletteColor color = palettesInstanced[i];
+            Transform child = color.transform.GetChild(0);
+
+            // Lerp position
+            Vector3 currentPos = child.localPosition;
+            Vector3 targetPos = new Vector3(0f, i == colorIndex ? -50f : 0f, 0f);
+            child.localPosition = Vector3.Lerp(currentPos, targetPos, Time.deltaTime * 10f);
+
+            // Lerp rotation
+            Quaternion currentRot = child.localRotation;
+            Quaternion targetRot = Quaternion.Euler(0f, 0f, i == colorIndex ? -50f : 0f);
+            child.localRotation = Quaternion.Lerp(currentRot, targetRot, Time.deltaTime * 10f);
+
+            // Lerp scale
+            Vector3 currentScale = child.localScale;
+            Vector3 targetScale = i == colorIndex ? Vector3.one * 1.2f : Vector3.one;
+            child.localScale = Vector3.Lerp(currentScale, targetScale, Time.deltaTime * 10f);
+        }
+            
+    }
+
+    void ManageIndex()
+    {
         float scroll = Input.GetAxis("Mouse ScrollWheel");
         if (scroll > 0f || Input.GetKeyDown(KeyCode.RightArrow))
         {
-            transform.GetChild(transform.childCount - 1).SetSiblingIndex(0);
+            colorIndex = (colorIndex + 1) % colors.Length;
         }
         else if (scroll < 0f || Input.GetKeyDown(KeyCode.LeftArrow))
         {
-            transform.GetChild(0).SetSiblingIndex(transform.childCount - 1);
-        }
-    }
-
-    void ManageColorsRotation()
-    {
-        for (int i = 0; i < colors.Length; i++)
-        {
-            Transform colorTransform = transform.GetChild(i);
-            float angle = 360f / colors.Length * i;
-            Quaternion targetRotation = Quaternion.Euler(0, -angle, 0);
-            colorTransform.localRotation = Quaternion.Lerp(colorTransform.localRotation, targetRotation, Time.deltaTime * 10f);
-            float distance = Mathf.Abs(i);
-            if (distance > colors.Length / 2)
-                distance = colors.Length - distance;
-            float scale = Mathf.Lerp(1.2f, 0.7f, distance / (colors.Length / 2f));
-            colorTransform.localScale = Vector3.Lerp(colorTransform.localScale, Vector3.one * scale, Time.deltaTime * 10f);
-
-            Vector3 finalPosition = transform.position;
-            if (i == 0)
-            {
-                finalPosition += Vector3.up * 15f;
-            }
-
-            colorTransform.position = Vector3.Lerp(colorTransform.position, finalPosition, Time.deltaTime * 10f);
+            colorIndex = (colorIndex - 1 + colors.Length) % colors.Length;
         }
 
     }
 
     public Color GetSelectedColor()
     {
-        return transform.GetChild(0).GetComponent<PaletteColor>().color;
+        return colors[colorIndex];
     }
 }

@@ -1,6 +1,14 @@
 using UnityEngine;
 using System.Collections;
 
+[System.Serializable]
+public struct DiskData
+{
+    public Texture texture;
+    public string songName;
+    public int[] colorIDs;
+}
+
 public class Music : MonoBehaviour
 {
     public static Music Instance { get; private set; }
@@ -9,7 +17,9 @@ public class Music : MonoBehaviour
 
     public float maxVolume = 0.2f;
     [SerializeField] float fadeDuration = 1f;
+    public DiskData[] disksData;
     bool fading = false;
+
 
     void Start()
     {
@@ -56,7 +66,7 @@ public class Music : MonoBehaviour
             audioSource.Play();
             yield break;
         }
-        
+
         float startVolume = audioSource.volume;
         float time = 0f;
         fading = true;

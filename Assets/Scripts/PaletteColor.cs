@@ -4,16 +4,8 @@ using UnityEngine;
 
 public class PaletteColor : MonoBehaviour
 {
-    [SerializeField]
-    public Color color;
-    void Start()
+    public void SetColor(Color newColor)
     {
-        GetComponentInChildren<UnityEngine.UI.Image>().color = color;
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
+        transform.GetChild(0).GetChild(0).GetComponent<UnityEngine.UI.Image>().color = newColor;
     }
 }

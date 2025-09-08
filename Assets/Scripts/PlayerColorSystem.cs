@@ -23,8 +23,8 @@ public class PlayerColorSystem : MonoBehaviour
         {
             Ray ray = new Ray(cam.transform.position, cam.transform.forward);
             RaycastHit hit;
-
-            if (Physics.Raycast(ray, out hit, 100f)) // 100 = distancia máxima del raycast
+            int layerMask = ~(1 << 6); // Ignore layer 6 (Player)
+            if (Physics.Raycast(ray, out hit, 200f, layerMask)) // 200 = distancia máxima del raycast
             {
                 // Intentamos obtener el componente ColorExpansion del objeto golpeado
                 ColorExpansion ce = hit.collider.GetComponent<ColorExpansion>();

@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -11,7 +12,7 @@ public class LeftPanel : MonoBehaviour
         initialPosition = transform.localPosition;
         transform.Find("GoToMenuButton").GetComponent<UnityEngine.UI.Button>().onClick.AddListener(GoToMenu);
         transform.Find("GoToMenuButton").GetComponent<UnityEngine.UI.Button>().onClick.AddListener(() => timer = 5f);
-        transform.Find("MusicToggle").GetComponent<UnityEngine.UI.Button>().onClick.AddListener(() => timer = 5f);
+        transform.Find("MusicToggle").GetComponent<UnityEngine.UI.Button>().onClick.AddListener(() => timer = 0f);
     }
 
     // Update is called once per frame
@@ -42,5 +43,8 @@ public class LeftPanel : MonoBehaviour
         UnityEngine.SceneManagement.SceneManager.LoadScene("Menu");
     }
 
-
+    internal void ClosePanel()
+    {
+        timer = 0f;
+    }
 }

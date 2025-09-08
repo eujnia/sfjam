@@ -48,8 +48,11 @@ Shader "Custom/ExpandingColorLit"
             // Check if baseColor is white (all components are 1)
             bool isBaseWhite = all(baseCol == float3(1,1,1));
             bool isNewWhite = all(newCol == float3(1,1,1));
-            float3 modBaseColor = isBaseWhite ? baseCol : baseCol * grayscale;
-            float3 modNewColor = isNewWhite ? newCol : newCol * grayscale;
+            bool isDisk = (_NewColor.r == 0 && _NewColor.a == 0.5);
+
+            float3 modBaseColor = isBaseWhite ? baseCol : (isDisk ? texColor.rgb : baseCol * grayscale);
+            float3 modNewColor = isNewWhite ? newCol : (isDisk ? texColor.rgb : newCol * grayscale);
+
             float3 finalColor = lerp(modBaseColor, modNewColor, t);
 
             o.Albedo = finalColor;

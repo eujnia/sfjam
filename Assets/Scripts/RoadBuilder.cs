@@ -110,7 +110,7 @@ namespace Unity.Splines.Examples
                 m_LoftRoadsRequested = false;
             }
         }
-        
+
         public void OnEnable()
         {
             // Avoid to point to an existing instance when duplicating the GameObject
@@ -264,7 +264,6 @@ namespace Unity.Splines.Examples
             LoftMesh.Clear();
 
             float length = spline.GetLength();
-
             if (length <= 0.001f)
                 return;
 
@@ -272,8 +271,10 @@ namespace Unity.Splines.Examples
             var segments = Mathf.CeilToInt(segmentsPerLength);
             var segmentStepT = (1f / SegmentsPerMeter) / length;
             var steps = segments + 1;
-            var vertexCount = steps * 2;
-            var triangleCount = segments * 6;
+
+            // 4 vértices por step (top L/R, bottom L/R)
+            var vertexCount = steps * 4;
+            var triangleCount = segments * (6 /*top*/ + 6 /*bottom*/ + 6 /*left wall*/ + 6 /*right wall*/);
             var prevVertexCount = m_Positions.Count;
 
             m_Positions.Capacity += vertexCount;
@@ -281,31 +282,35 @@ namespace Unity.Splines.Examples
             m_Textures.Capacity += vertexCount;
             m_Indices.Capacity += triangleCount;
 
+            float thickness = 1f; // grosor hacia abajo (en metros)
             var t = 0f;
+
             for (int i = 0; i < steps; i++)
             {
-                SplineUtility.Evaluate(spline, t, out var pos, out var dir, out var up);
+                // pos, dir, up salen como float3
+                SplineUtility.Evaluate(spline, t, out var posF, out var dirF, out var upF);
 
-                // If dir evaluates to zero (linear or broken zero length tangents?)
-                // then attempt to advance forward by a small amount and build direction to that point
-                if (math.length(dir) == 0)
+                // Asegurar dirección si vino cero
+                if (math.length(dirF) == 0)
                 {
                     var nextPos = spline.GetPointAtLinearDistance(t, 0.01f, out _);
-                    dir = math.normalizesafe(nextPos - pos);
+                    dirF = math.normalizesafe(nextPos - posF);
 
-                    if (math.length(dir) == 0)
+                    if (math.length(dirF) == 0)
                     {
                         nextPos = spline.GetPointAtLinearDistance(t, -0.01f, out _);
-                        dir = -math.normalizesafe(nextPos - pos);
+                        dirF = -math.normalizesafe(nextPos - posF);
                     }
 
-                    if (math.length(dir) == 0)
-                        dir = new float3(0, 0, 1);
+                    if (math.length(dirF) == 0)
+                        dirF = new float3(0, 0, 1);
                 }
 
                 var scale = transform.lossyScale;
-                var tangent = math.normalizesafe(math.cross(up, dir)) * new float3(1f / scale.x, 1f / scale.y, 1f / scale.z);
+                var tangentF = math.normalizesafe(math.cross(upF, dirF)) *
+                               new float3(1f / scale.x, 1f / scale.y, 1f / scale.z);
 
+                // Ancho de la ruta
                 var w = 1f;
                 if (widthDataIndex < m_Widths.Count)
                 {
@@ -317,25 +322,72 @@ namespace Unity.Splines.Examples
                     }
                 }
 
-                m_Positions.Add(pos - (tangent * w));
-                m_Positions.Add(pos + (tangent * w));
+                // Convertimos a Vector3 para operar sin ambigüedad
+                Vector3 pos = (Vector3)posF;
+                Vector3 up = (Vector3)upF;
+                Vector3 tangent = (Vector3)tangentF;
+
+                // Vértices
+                Vector3 leftTop = pos - (tangent * w);
+                Vector3 rightTop = pos + (tangent * w);
+                Vector3 leftBottom = leftTop - up * thickness;     // <- ahora todo es Vector3
+                Vector3 rightBottom = rightTop - up * thickness;
+
+                // Guardar posiciones
+                m_Positions.Add(leftTop);      // 0
+                m_Positions.Add(rightTop);     // 1
+                m_Positions.Add(leftBottom);   // 2
+                m_Positions.Add(rightBottom);  // 3
+
+                // Normales (planas: arriba y abajo)
                 m_Normals.Add(up);
                 m_Normals.Add(up);
-                m_Textures.Add(new Vector2(0f, t * m_TextureScale));
-                m_Textures.Add(new Vector2(1f, t * m_TextureScale));
+                m_Normals.Add(-up);
+                m_Normals.Add(-up);
+
+                // UVs (básicos)
+                float v = t * m_TextureScale;
+                m_Textures.Add(new Vector2(0f, v));
+                m_Textures.Add(new Vector2(1f, v));
+                m_Textures.Add(new Vector2(0f, v));
+                m_Textures.Add(new Vector2(1f, v));
 
                 t = math.min(1f, t + segmentStepT);
             }
 
-            for (int i = 0, n = prevVertexCount; i < triangleCount; i += 6, n += 2)
+            // Triángulos por segmento
+            for (int i = 0; i < segments; i++)
             {
-                m_Indices.Add((n + 2) % (prevVertexCount + vertexCount));
-                m_Indices.Add((n + 1) % (prevVertexCount + vertexCount));
-                m_Indices.Add((n + 0) % (prevVertexCount + vertexCount));
-                m_Indices.Add((n + 2) % (prevVertexCount + vertexCount));
-                m_Indices.Add((n + 3) % (prevVertexCount + vertexCount));
-                m_Indices.Add((n + 1) % (prevVertexCount + vertexCount));
+                int n0 = prevVertexCount + i * 4;
+                int n1 = n0 + 4;
+
+                int lt0 = n0;     // left top
+                int rt0 = n0 + 1; // right top
+                int lb0 = n0 + 2; // left bottom
+                int rb0 = n0 + 3; // right bottom
+
+                int lt1 = n1;
+                int rt1 = n1 + 1;
+                int lb1 = n1 + 2;
+                int rb1 = n1 + 3;
+
+                // Cara superior
+                m_Indices.Add(lt0); m_Indices.Add(lt1); m_Indices.Add(rt0);
+                m_Indices.Add(rt0); m_Indices.Add(lt1); m_Indices.Add(rt1);
+
+                // Cara inferior (invertida)
+                m_Indices.Add(lb0); m_Indices.Add(rb0); m_Indices.Add(lb1);
+                m_Indices.Add(rb0); m_Indices.Add(rb1); m_Indices.Add(lb1);
+
+                // Pared izquierda
+                m_Indices.Add(lt0); m_Indices.Add(lb0); m_Indices.Add(lt1);
+                m_Indices.Add(lb0); m_Indices.Add(lb1); m_Indices.Add(lt1);
+
+                // Pared derecha
+                m_Indices.Add(rt0); m_Indices.Add(rt1); m_Indices.Add(rb0);
+                m_Indices.Add(rb0); m_Indices.Add(rt1); m_Indices.Add(rb1);
             }
         }
+
     }
 }

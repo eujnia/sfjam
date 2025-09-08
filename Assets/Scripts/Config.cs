@@ -7,6 +7,8 @@ public class ConfigData
 {
     public bool musicMuted = false;
     public bool sfxMuted = false;
+    public string tuNombre;
+    public string otroNombre;
 }
 
 public class Config : MonoBehaviour
