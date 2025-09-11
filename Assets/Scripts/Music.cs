@@ -12,17 +12,18 @@ public struct DiskData
 public class Music : MonoBehaviour
 {
     public static Music Instance { get; private set; }
-    public AudioClip[] songs;   // lista de canciones desde el inspector
+    AudioClip[] songs;   // lista de canciones desde el inspector
     private AudioSource audioSource;
 
     public float maxVolume = 0.2f;
     [SerializeField] float fadeDuration = 1f;
     public DiskData[] disksData;
     bool fading = false;
-
+    internal bool forceMute;
 
     void Start()
     {
+        songs = Resources.LoadAll<AudioClip>("Music");
         // Singleton
         if (Instance != null && Instance != this)
         {
@@ -45,13 +46,13 @@ public class Music : MonoBehaviour
 
     private void Update()
     {
-        if (!fading) audioSource.volume = Mathf.Lerp(audioSource.volume, maxVolume * (Config.Instance.data.musicMuted ? 0f : 1f), Time.deltaTime * 5f);
+        if (!fading) audioSource.volume = Mathf.Lerp(audioSource.volume, maxVolume * (Config.Instance.data.musicMuted ? 0f : 1f) * (forceMute ? 0f : 1f), Time.deltaTime * 5f);
     }
 
     public void PlaySong(string songName, bool fade = true)
     {
         AudioClip clip = System.Array.Find(songs, song => song.name == songName);
-        if (clip == null) return;
+        if (clip == null || (audioSource.clip == clip && audioSource.isPlaying)) return;
 
         StopAllCoroutines();
         StartCoroutine(FadeToSong(clip, fade));
@@ -62,7 +63,7 @@ public class Music : MonoBehaviour
         if (!fade)
         {
             audioSource.clip = newClip;
-            audioSource.volume = maxVolume * (Config.Instance.data.musicMuted ? 0f : 1f);
+            audioSource.volume = maxVolume * (Config.Instance.data.musicMuted ? 0f : 1f) * (forceMute ? 0f : 1f);
             audioSource.Play();
             yield break;
         }
@@ -87,11 +88,11 @@ public class Music : MonoBehaviour
         while (time < fadeDuration)
         {
             time += Time.deltaTime;
-            audioSource.volume = Mathf.Lerp(0f, maxVolume * (Config.Instance.data.musicMuted ? 0f : 1f), time / fadeDuration);
+            audioSource.volume = Mathf.Lerp(0f, maxVolume * (Config.Instance.data.musicMuted ? 0f : 1f) * (forceMute ? 0f : 1f), time / fadeDuration);
             yield return null;
         }
 
-        audioSource.volume = maxVolume * (Config.Instance.data.musicMuted ? 0f : 1f);
+        audioSource.volume = maxVolume * (Config.Instance.data.musicMuted ? 0f : 1f) * (forceMute ? 0f : 1f);
         fading = false;
     }
 

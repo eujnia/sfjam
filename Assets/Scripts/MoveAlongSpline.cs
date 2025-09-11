@@ -15,7 +15,7 @@ public class MoveAlongSpline : MonoBehaviour
     Transform ruedaDelantera;
     Transform ruedaTrasera;
     Transform pedales;
-    float distancePercentage = 0f;
+    public float distancePercentage = 0f;
 
 
     float splineLength;
@@ -35,17 +35,22 @@ public class MoveAlongSpline : MonoBehaviour
     void Update()
     {
         distancePercentage += speed * Time.deltaTime / splineLength;
-        distancePercentage = Mathf.Clamp(distancePercentage, percentageRange.x, percentageRange.y);
+        if (distancePercentage < percentageRange.x)
+        {
+            speed = 0f;
+            distancePercentage = percentageRange.x;
+        }
+        else if (distancePercentage > percentageRange.y)
+        {
+            speed = 0f;
+            distancePercentage = percentageRange.y;
+        }
 
+        // print(distancePercentage);
 
 
         Vector3 currentPosition = spline.EvaluatePosition(distancePercentage);
         transform.position = currentPosition;
-
-        if (distancePercentage > 1f)
-        {
-            distancePercentage = 0f;
-        }
 
         Vector3 nextPosition = spline.EvaluatePosition(distancePercentage + predictionTime);
         Vector3 direction = nextPosition - currentPosition;

@@ -16,7 +16,8 @@ public class Menu : MonoBehaviour
 
     BlackTransitionEffect blackTransition;
     Transform wheel;
-    float wheelSpeed = 60f;
+    float wheelSpeed = 80f;
+    TMPro.TextMeshProUGUI debugText;
 
     void Start()
     {
@@ -49,14 +50,14 @@ public class Menu : MonoBehaviour
         ManageStates();
 
         ManageColors();
-        
+
         BicycleWheel();
     }
 
     private void BicycleWheel()
     {
         wheel.Rotate(Vector3.right * wheelSpeed * Time.deltaTime);
-        wheelSpeed -= Time.deltaTime * 4f;
+        wheelSpeed -= Time.deltaTime * 6f;
         if (wheelSpeed < 0) wheelSpeed = 0;
     }
 
@@ -76,7 +77,7 @@ public class Menu : MonoBehaviour
                 ColorExpansion ce = hit.collider.GetComponent<ColorExpansion>();
                 if (ce != null)
                 {
-                    if(state == -1) state = 0;
+                    if (state == -1) state = 0;
                     ce.StartEffect(hit.point, ce.debugMenu);
                 }
                 else
@@ -99,8 +100,8 @@ public class Menu : MonoBehaviour
 
     private void Forward()
     {
-        if (state == 1 && Config.Instance.data.tuNombre == "") return;
-        if (state == 2 && Config.Instance.data.otroNombre == "") return;
+        if (state == 1 && Config.Instance.data.myName == "") return;
+        if (state == 2 && Config.Instance.data.otherName == "") return;
         state++;
         ChangeButtonText("Continuar");
     }
@@ -151,10 +152,12 @@ public class Menu : MonoBehaviour
                 blackTransition.GoBlack(
                     () =>
                     {
+                        Config.Instance.SaveConfig();
                         Music.Instance.PlaySong("karma");
                         UnityEngine.SceneManagement.SceneManager.LoadScene("Game1");
                     }
                 );
+                state = 4;
                 break;
         }
     }
@@ -165,4 +168,8 @@ public class Menu : MonoBehaviour
         textEffects.Refresh();
     }
 
+    public void ExitGame()
+    {
+        Application.Quit();
+    }
 }

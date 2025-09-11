@@ -8,12 +8,16 @@ public class MusicToggle : MonoBehaviour
     void Start()
     {
         image = GetComponent<UnityEngine.UI.Image>();
-        if(!image) image =transform.Find("Image").GetComponent<UnityEngine.UI.Image>();
-        GetComponent<UnityEngine.UI.Button>().onClick.AddListener(Config.Instance.ToggleMusicMute);
+        if (!image) image = transform.Find("Image").GetComponent<UnityEngine.UI.Image>();
+        UpdateSprite();
+        GetComponent<UnityEngine.UI.Button>().onClick.AddListener(() =>
+        {
+            Config.Instance.ToggleMusicMute();
+            UpdateSprite();
+        });
     }
-
-    // Update is called once per frame
-    void Update()
+    
+    private void UpdateSprite()
     {
         string spriteName = Config.Instance.data.musicMuted ? "Textures/musicOff" : "Textures/musicOn";
         image.sprite = Resources.Load<Sprite>(spriteName);

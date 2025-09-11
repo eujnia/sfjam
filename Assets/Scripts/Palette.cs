@@ -22,12 +22,14 @@ public class Palette : MonoBehaviour
 
     Color[] colors;
     PaletteColor[] palettesInstanced;
+    GameManager gameManager;
 
     // public int selectedColorIndex = 0;
 
     void Start()
     {
         InitializeColors();
+        gameManager = GameObject.Find("GameManager").GetComponent<GameManager>();
         palettesInstanced = new PaletteColor[colors.Length];
         for (int i = 0; i < colors.Length; i++)
         {
@@ -54,7 +56,7 @@ public class Palette : MonoBehaviour
                     new Color(0.1f, 0.1f, 0.1f),   // Negro suave
 
                     // Rojos
-                    new Color(0.8f, 0.35f, 0.0f),  // Naranja oscuro
+                    new Color(0.36f, 0.20f, 0.09f),  // Madera
                     new Color(0.6f, 0.0f, 0.0f),   // Rojo oscuro
                     new Color(0.9f, 0.1f, 0.1f),   // Rojo intenso
                     new Color(1.0f, 0.4f, 0.4f),   // Rojo pastel
@@ -231,6 +233,6 @@ public class Palette : MonoBehaviour
 
     public Color GetSelectedColor()
     {
-        return colors[colorIndex];
+        return colors[gameManager.level != 7? colorIndex : 3];
     }
 }

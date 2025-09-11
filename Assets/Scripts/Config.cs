@@ -7,8 +7,9 @@ public class ConfigData
 {
     public bool musicMuted = false;
     public bool sfxMuted = false;
-    public string tuNombre;
-    public string otroNombre;
+    public string myName;
+    public string otherName;
+    public float sensitivity = 1f;
 }
 
 public class Config : MonoBehaviour
@@ -58,5 +59,13 @@ public class Config : MonoBehaviour
     {
         data.musicMuted = !data.musicMuted;
         SaveConfig();
+    }
+
+    internal float ToggleSensitivity()
+    {
+        data.sensitivity += 0.5f;
+        if (data.sensitivity > 2f) data.sensitivity = 0.5f;
+        SaveConfig();
+        return data.sensitivity;
     }
 }

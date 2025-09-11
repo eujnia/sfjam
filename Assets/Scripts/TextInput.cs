@@ -30,8 +30,8 @@ public class TextInput : MonoBehaviour
         if (active)
         {
             inputField.ActivateInputField();
-            if(id == 0) Config.Instance.data.tuNombre = inputField.text;
-            else if(id == 1) Config.Instance.data.otroNombre = inputField.text;
+            if(id == 0) Config.Instance.data.myName = inputField.text;
+            else if(id == 1) Config.Instance.data.otherName = inputField.text;
         }
     }
 }
